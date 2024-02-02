@@ -61,6 +61,26 @@ use_CCIWHOMasked_dataset = True
 ## Regulariser
 find_regulariser_before_average = True
 
+## Variables of interest
+immunecells_set = ['NK/uL', 'B CD19/uL', 'T CD3/uL', 'T CD4/uL', '% T CD4 HLADR POS', 'T CD8/uL', '% T CD8 HLADR POS', 
+                   'WBC/uL', 'NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'Mono DR %', 'Linfo/uL', 'LRTE/uL', 'LRTE % dei CD4']
+cytokines_set = ['IFNGC', 'IL10', 'IL1B', 'IL2R', 'IL6', 'IL8', 'IP10']
+demographics_set = ['age', 'sex', 'delta_onset']
+scores_set = ['CCI (charlson comorbidity index)', 'SOFA', 'NEWS', 'qCSI', '4 C score']
+biomarkers_set = ['PROADM', 'LDH', 'PCR']
+output_set = ['merged_death', 'IOT+death', 'IOT+ICU+death', 'WHO=>3']
+allinput_set = immunecells_set + cytokines_set + demographics_set + scores_set + biomarkers_set
+
+## Variables of multivariate models
+IC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
+Dem_set = ['age', 'sex', 'delta_onset']
+CK_set = ['IL2R', 'IL6', 'IL8', 'IL10', 'IP10']
+
+## File names
+file_name_inpatients = 'DataInpatients_CCIMasked.xlsx'
+file_name_outpatients = 'DataOutpatients.xlsx'
+
+
 # ------- #
 
 ## Paths
