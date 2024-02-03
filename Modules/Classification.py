@@ -14,7 +14,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_sp
 import sys
 import os
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
-sys.path.append('/Users/riccardo/Documents/OneDrive - SISSA/TriesteProject/Covid19/')
+sys.path.append('/Users/riccardo/Documents/GitHub/COVID19Classification/')
 
 # Import custom modules
 from Modules import CustomClasses as cc, Parameters
