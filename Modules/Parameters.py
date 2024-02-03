@@ -59,7 +59,13 @@ use_manual_selection = True
 use_CCIWHOMasked_dataset = True
 
 ## Regulariser
-find_regulariser_before_average = True
+find_regulariser_before_average = False
+hyperparameters_grid_LR = {'C': [1e-4, 1e-3, 1e-2, 5*1e-2, 1e-1, 5*1e-1, 1e0, 5*1e0, 1e1], 
+                           'class_weight': ['balanced'],
+                           'penalty': ['l2'],
+                           'max_iter': [1000]}
+score = 'f1'
+n_splits_gridsearch = 3
 
 ## Variables of interest
 immunecells_set = ['NK/uL', 'B CD19/uL', 'T CD3/uL', 'T CD4/uL', '% T CD4 HLADR POS', 'T CD8/uL', '% T CD8 HLADR POS', 
