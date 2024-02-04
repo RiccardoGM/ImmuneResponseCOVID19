@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler, PowerTransformer
 import sys
 import os
 
-# Add path to custo modules
+# Add path to custom modules
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
 sys.path.append('/Users/riccardo/Documents/GitHub/COVID19Classification/')
 print(sys.version)
@@ -99,4 +99,8 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
         if n_outliers:
             DataInpatients[name].where(is_outlier.reshape(-1,)==False, inplace=True)
 
+    # Reset indices
+    DataInpatients.reset_index(inplace=True)
+    DataOutpatients.reset_index(inplace=True)
+    
     return DataInpatients[['ID']+allinput_set+output_set], DataOutpatients[['ID']+allinput_set+output_set]
