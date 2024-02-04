@@ -257,165 +257,31 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
         for set_name in models_dict['LR'].keys():
             columns = models_dict['LR'][set_name]            
             
-            ## Look for hyperparameters
-            C_reg = None
-            std_parameters_dict = {}
-            if not pd.DataFrame(hyperp_dict).empty:
-                if 'LR' in hyperp_dict.keys():
-                    if set_name in hyperp_dict['LR'].keys():
-                        if 'C' in hyperp_dict['LR'][set_name].keys():
-                            C_reg = hyperp_dict['LR'][set_name]['C']
-                        if 'std_parameters' in hyperp_dict['LR'][set_name].keys():
-                            if standardization=='PowerTransformer':
-                                std_parameters_dict = {'PowerTransformer': hyperp_dict['LR'][set_name]['std_parameters']}
-            
-            
-            ## Nan masking
-            if len(columns)>1:
-                if do_nan_masking:
-                    nan_masking_val = nan_masking
-                    do_nan_masking_groupwise_val = do_nan_masking_groupwise
-                else:
-                    nan_masking_val = 0.99
-            elif len(columns)==1:
-                do_nan_masking_groupwise_val = False
-                if do_nan_masking_univ:
-                    nan_masking_val = 0.0 
-                else:
-                    nan_masking_val = 1.
-            else:
-                raise ValueError('N. of columns need to be larger than zero.')
-            Data_masked = nan_masking_fc(Data, 
-                                         columns,
-                                         nan_masking_val,
-                                         do_nan_masking_groupwise_val, 
-                                         groups)
-            
-            ## Train-test split            
-            Data_train, Data_test = split_fc(Data_masked, 
-                                             columns, 
-                                             target_train, 
-                                             target_test,
-                                             test_size)
-
-
-            ## Preprocessing
-            #standardization: 'default' or 'PowerTransformer'
-            Data_train = Data_train[columns+[target_train, 'ID']]
-            Data_test = Data_test[columns+[target_test, 'ID']]
-            if do_preprocessing:
-                Preprocessed_data_dict = preprocessing(Data_train,
-                                                       target_train,
-                                                       target_test=target_test,
-                                                       Data_test=Data_test,
-                                                       standardization=standardization, 
-                                                       imputation=imputation, # 'default' or 'PowerTransformer'
-                                                       std_parameters_dict=std_parameters_dict,
-                                                       fix_outliers=fix_outliers, 
-                                                       do_imputation=do_imputation)
-            else:
-                Preprocessed_data_dict = data_dict(Data_train,
-                                                   target_train,
-                                                   target_test=target_test,
-                                                   Data_test=Data_test)
-            
-            
-            ## Training set
-            X_train = Preprocessed_data_dict['Training set']['X'].values
-            y_train = Preprocessed_data_dict['Training set']['Y'].values.ravel()
-            ID_train = Preprocessed_data_dict['Training set']['ID'].values.ravel()
-
-            
-            ## Test set
-            X_test = Preprocessed_data_dict['Test set']['X'].values
-            ID_test = Preprocessed_data_dict['Test set']['ID'].values.ravel()
-            y_test = Preprocessed_data_dict['Test set']['Y'].values.ravel()
-            
-            
-            ## Apply pca to non-categorical data
-            Data_pca = Data_train[columns].values
-            idx_cat = [i for i in range(Data_pca.shape[1]) if set(Data_pca[:, i]).issubset(set([0, 1, np.nan]))]
-            idx_num = [i for i in range(Data_pca.shape[1]) if i not in idx_cat]
-            X_train_nocat = X_train[:, idx_num]
-            pca = PCA(svd_solver='full')
-            pca.fit(X_train_nocat)
-            mask_components = pca.explained_variance_ratio_.ravel()<pca_var_threshold
-            pca.components_[mask_components] = 0
-            X_train_nocat = pca.transform(X_train_nocat)
-            X_train = np.hstack((X_train[:, idx_cat], X_train_nocat))
-            if 'Test set' in Preprocessed_data_dict.keys():
-                X_test_nocat = X_test[:, idx_num]
-                X_test_nocat = pca.transform(X_test_nocat)
-                X_test = np.hstack((X_test[:, idx_cat], X_test_nocat))
-                      
-                        
-            ## Hyperparameters grid search
-            LR = LogisticRegression()
-            if C_reg==None:
-                grid = Parameters.hyperparameters_grid_LR
-                score = Parameters.score
-                n_splits = Parameters.n_splits_gridsearch
-                hyperparameters = best_hyppar_gridsearch(X_train, y_train, LR, grid, score, n_splits)
-                C_reg = hyperparameters['C']
-            else:
-                hyperparameters = {'C': C_reg, 'class_weight': 'balanced', 'penalty': 'l2', 'max_iter': 1000}
-            LR = LogisticRegression(**hyperparameters)
-            
-            
-            ## Prediction
-            y_train_LR = LR.fit(X_train, y_train).predict(X_train)
-            y_test_LR = LR.predict(X_test)
-            value_train_LR = LR.decision_function(X_train)
-            value_test_LR = LR.decision_function(X_test)
-            coefficients_LR = LR.coef_.reshape(-1,)
-            bias_LR = LR.intercept_
-            coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
-            for i, idx in enumerate(idx_cat):
-                coefficients_LR_projected.insert(idx, coefficients_LR[i])
-            coefficients_LR_projected = np.array(coefficients_LR_projected)
-
-            
-            ## Prediction min NPV models
-            if min_NPV_Models:
-                threshold = best_threshold_class0(y_pred=y_train_LR,
-                                                  value_pred=value_train_LR,
-                                                  y_target=y_train,
-                                                  min_NPV=min_NPV,
-                                                  fixed_threshold=False)
-                if pd.notnull(threshold):
-                    y_train_LR_0 = np.zeros_like(y_train_LR)
-                    y_train_LR_0[value_train_LR>threshold] = 1
-                    y_test_LR_0 = np.zeros_like(y_test_LR)
-                    y_test_LR_0[value_test_LR>threshold] = 1
-                else:
-                    y_train_LR_0 = np.zeros_like(y_train_LR) * np.nan
-                    y_test_LR_0 = np.zeros_like(y_test_LR) * np.nan
-                    #print('Threshold not found - try reducing min_NPV.')
-            
+            Results_LR_model = LR_model_results(Data=Data, 
+                                                features=columns, 
+                                                set_name=set_name, 
+                                                target_train=target_train, 
+                                                target_test=target_test, 
+                                                test_size=test_size,
+                                                hyperp_dict=hyperp_dict, 
+                                                do_preprocessing=do_preprocessing, 
+                                                fix_outliers=fix_outliers, 
+                                                do_imputation=do_imputation, 
+                                                imputation=imputation, 
+                                                pca_var_threshold=pca_var_threshold, 
+                                                standardization=standardization, 
+                                                min_NPV_Models=min_NPV_Models,
+                                                min_NPV=min_NPV, 
+                                                groups=groups, 
+                                                do_nan_masking=do_nan_masking, 
+                                                do_nan_masking_groupwise=do_nan_masking_groupwise, 
+                                                do_nan_masking_univ=do_nan_masking_univ, 
+                                                nan_masking=nan_masking)
             
             ## Save results
-            Results['LR'][set_name] = {'Train': y_train_LR.ravel(),
-                                       'Train_value': value_train_LR.ravel(),
-                                       'Train_Labels': y_train,
-                                       'ID_train': ID_train,
-                                       'Test': y_test_LR.ravel(),
-                                       'Test_value': value_test_LR.ravel(),
-                                       'Test_Labels': y_test,
-                                       'ID_test': ID_test,
-                                       'Weights': coefficients_LR_projected.ravel(),
-                                       'Bias': bias_LR.ravel(), 
-                                       'C': C_reg, 
-                                       'Std_Parameters': Preprocessed_data_dict['Training set']['Std_Parameters']}
-            
+            Results['LR'][set_name] = Results_LR_model[set_name]
             if min_NPV_Models:
-                Results['LR'][set_name+'_minNPV'] = {'Train': y_train_LR_0.ravel(),
-                                                     'Train_value': value_train_LR.ravel(),
-                                                     'Train_Labels': y_train,
-                                                     'ID_train': ID_train,
-                                                     'Test': y_test_LR_0.ravel(),
-                                                     'Test_value': value_test_LR.ravel(),
-                                                     'Test_Labels': y_test, 
-                                                     'ID_test': ID_test}
+                Results['LR'][set_name+'_minNPV'] = Results_LR_model[set_name+'_minNPV']
 
     return Results
 
@@ -572,3 +438,176 @@ def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=Fal
     Data_test[target_test] = y_test
     
     return Data_train, Data_test
+
+
+# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
+
+def LR_model_results(Data, features, set_name, target_train='IOT+death', target_test='IOT+death', test_size=0.3, hyperp_dict={}, 
+                     do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', pca_var_threshold=0.05, 
+                     standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, do_nan_masking=False, 
+                     do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None):
+
+    columns = features
+            
+    ## Look for hyperparameters
+    C_reg = None
+    std_parameters_dict = {}
+    if not pd.DataFrame(hyperp_dict).empty:
+        if 'LR' in hyperp_dict.keys():
+            if set_name in hyperp_dict['LR'].keys():
+                if 'C' in hyperp_dict['LR'][set_name].keys():
+                    C_reg = hyperp_dict['LR'][set_name]['C']
+                if 'std_parameters' in hyperp_dict['LR'][set_name].keys():
+                    if standardization=='PowerTransformer':
+                        std_parameters_dict = {'PowerTransformer': hyperp_dict['LR'][set_name]['std_parameters']}
+    
+    
+    ## Nan masking
+    if len(columns)>1:
+        if do_nan_masking:
+            nan_masking_val = nan_masking
+            do_nan_masking_groupwise_val = do_nan_masking_groupwise
+        else:
+            nan_masking_val = 0.99
+    elif len(columns)==1:
+        do_nan_masking_groupwise_val = False
+        if do_nan_masking_univ:
+            nan_masking_val = 0.0 
+        else:
+            nan_masking_val = 1.
+    else:
+        raise ValueError('N. of columns need to be larger than zero.')
+    Data_masked = nan_masking_fc(Data, 
+                                 columns,
+                                 nan_masking_val,
+                                 do_nan_masking_groupwise_val, 
+                                 groups)
+    
+    ## Train-test split            
+    Data_train, Data_test = split_fc(Data_masked, 
+                                        columns, 
+                                        target_train, 
+                                        target_test,
+                                        test_size)
+
+
+    ## Preprocessing
+    #standardization: 'default' or 'PowerTransformer'
+    Data_train = Data_train[columns+[target_train, 'ID']]
+    Data_test = Data_test[columns+[target_test, 'ID']]
+    if do_preprocessing:
+        Preprocessed_data_dict = preprocessing(Data_train,
+                                                target_train,
+                                                target_test=target_test,
+                                                Data_test=Data_test,
+                                                standardization=standardization, 
+                                                imputation=imputation, # 'default' or 'PowerTransformer'
+                                                std_parameters_dict=std_parameters_dict,
+                                                fix_outliers=fix_outliers, 
+                                                do_imputation=do_imputation)
+    else:
+        Preprocessed_data_dict = data_dict(Data_train,
+                                            target_train,
+                                            target_test=target_test,
+                                            Data_test=Data_test)
+    
+    
+    ## Training set
+    X_train = Preprocessed_data_dict['Training set']['X'].values
+    y_train = Preprocessed_data_dict['Training set']['Y'].values.ravel()
+    ID_train = Preprocessed_data_dict['Training set']['ID'].values.ravel()
+
+    
+    ## Test set
+    X_test = Preprocessed_data_dict['Test set']['X'].values
+    ID_test = Preprocessed_data_dict['Test set']['ID'].values.ravel()
+    y_test = Preprocessed_data_dict['Test set']['Y'].values.ravel()
+    
+    
+    ## Apply pca to non-categorical data
+    Data_pca = Data_train[columns].values
+    idx_cat = [i for i in range(Data_pca.shape[1]) if set(Data_pca[:, i]).issubset(set([0, 1, np.nan]))]
+    idx_num = [i for i in range(Data_pca.shape[1]) if i not in idx_cat]
+    X_train_nocat = X_train[:, idx_num]
+    pca = PCA(svd_solver='full')
+    pca.fit(X_train_nocat)
+    mask_components = pca.explained_variance_ratio_.ravel()<pca_var_threshold
+    pca.components_[mask_components] = 0
+    X_train_nocat = pca.transform(X_train_nocat)
+    X_train = np.hstack((X_train[:, idx_cat], X_train_nocat))
+    if 'Test set' in Preprocessed_data_dict.keys():
+        X_test_nocat = X_test[:, idx_num]
+        X_test_nocat = pca.transform(X_test_nocat)
+        X_test = np.hstack((X_test[:, idx_cat], X_test_nocat))
+                
+                
+    ## Hyperparameters grid search
+    LR = LogisticRegression()
+    if C_reg==None:
+        grid = Parameters.hyperparameters_grid_LR
+        score = Parameters.score
+        n_splits = Parameters.n_splits_gridsearch
+        hyperparameters = best_hyppar_gridsearch(X_train, y_train, LR, grid, score, n_splits)
+        C_reg = hyperparameters['C']
+    else:
+        hyperparameters = {'C': C_reg, 'class_weight': 'balanced', 'penalty': 'l2', 'max_iter': 1000}
+    LR = LogisticRegression(**hyperparameters)
+    
+    
+    ## Prediction
+    y_train_LR = LR.fit(X_train, y_train).predict(X_train)
+    y_test_LR = LR.predict(X_test)
+    value_train_LR = LR.decision_function(X_train)
+    value_test_LR = LR.decision_function(X_test)
+    coefficients_LR = LR.coef_.reshape(-1,)
+    bias_LR = LR.intercept_
+    coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
+    for i, idx in enumerate(idx_cat):
+        coefficients_LR_projected.insert(idx, coefficients_LR[i])
+    coefficients_LR_projected = np.array(coefficients_LR_projected)
+
+    
+    ## Prediction min NPV models
+    if min_NPV_Models:
+        threshold = best_threshold_class0(y_pred=y_train_LR,
+                                            value_pred=value_train_LR,
+                                            y_target=y_train,
+                                            min_NPV=min_NPV,
+                                            fixed_threshold=False)
+        if pd.notnull(threshold):
+            y_train_LR_0 = np.zeros_like(y_train_LR)
+            y_train_LR_0[value_train_LR>threshold] = 1
+            y_test_LR_0 = np.zeros_like(y_test_LR)
+            y_test_LR_0[value_test_LR>threshold] = 1
+        else:
+            y_train_LR_0 = np.zeros_like(y_train_LR) * np.nan
+            y_test_LR_0 = np.zeros_like(y_test_LR) * np.nan
+            #print('Threshold not found - try reducing min_NPV.')
+    
+    
+    ## Save results
+    Results = {}   
+    Results[set_name] = {'Train': y_train_LR.ravel(),
+                                'Train_value': value_train_LR.ravel(),
+                                'Train_Labels': y_train,
+                                'ID_train': ID_train,
+                                'Test': y_test_LR.ravel(),
+                                'Test_value': value_test_LR.ravel(),
+                                'Test_Labels': y_test,
+                                'ID_test': ID_test,
+                                'Weights': coefficients_LR_projected.ravel(),
+                                'Bias': bias_LR.ravel(), 
+                                'C': hyperparameters['C'], 
+                                'Std_Parameters': Preprocessed_data_dict['Training set']['Std_Parameters']}
+    
+    if min_NPV_Models:
+        Results[set_name+'_minNPV'] = {'Train': y_train_LR_0.ravel(),
+                                                'Train_value': value_train_LR.ravel(),
+                                                'Train_Labels': y_train,
+                                                'ID_train': ID_train,
+                                                'Test': y_test_LR_0.ravel(),
+                                                'Test_value': value_test_LR.ravel(),
+                                                'Test_Labels': y_test, 
+                                                'ID_test': ID_test}
+
+    return Results
