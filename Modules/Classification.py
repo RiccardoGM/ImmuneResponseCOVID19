@@ -442,10 +442,11 @@ def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=Fal
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def LR_model_results(Data, features, set_name, target_train='IOT+death', target_test='IOT+death', test_size=0.3, hyperp_dict={}, 
-                     do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', pca_var_threshold=0.05, 
-                     standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, do_nan_masking=False, 
-                     do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None):
+def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_train='IOT+death', target_test='IOT+death',  
+                     test_size=0.3, hyperp_dict={}, do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', 
+                     pca_var_threshold=0.05, standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, 
+                     do_nan_masking=False, do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None, 
+                     return_model=False, return_data=False):
 
     columns = features
             
@@ -483,12 +484,20 @@ def LR_model_results(Data, features, set_name, target_train='IOT+death', target_
                                  do_nan_masking_groupwise_val, 
                                  groups)
     
-    ## Train-test split            
-    Data_train, Data_test = split_fc(Data_masked, 
-                                        columns, 
-                                        target_train, 
-                                        target_test,
-                                        test_size)
+    ## Train-test split
+    if Data_test.empty:          
+        Data_train, Data_test = split_fc(Data_masked, 
+                                         columns, 
+                                         target_train, 
+                                         target_test,
+                                         test_size)
+    else:
+        Data_train = Data_masked
+        Data_test = nan_masking_fc(Data_test, 
+                                   columns,
+                                   nan_masking_val,
+                                   do_nan_masking_groupwise_val, 
+                                   groups)
 
 
     ## Preprocessing
@@ -559,8 +568,8 @@ def LR_model_results(Data, features, set_name, target_train='IOT+death', target_
     y_test_LR = LR.predict(X_test)
     value_train_LR = LR.decision_function(X_train)
     value_test_LR = LR.decision_function(X_test)
-    coefficients_LR = LR.coef_.reshape(-1,)
-    bias_LR = LR.intercept_
+    coefficients_LR = LR.coef_.copy().reshape(-1,)
+    bias_LR = LR.intercept_.copy()
     coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
     for i, idx in enumerate(idx_cat):
         coefficients_LR_projected.insert(idx, coefficients_LR[i])
@@ -588,26 +597,35 @@ def LR_model_results(Data, features, set_name, target_train='IOT+death', target_
     ## Save results
     Results = {}   
     Results[set_name] = {'Train': y_train_LR.ravel(),
-                                'Train_value': value_train_LR.ravel(),
-                                'Train_Labels': y_train,
-                                'ID_train': ID_train,
-                                'Test': y_test_LR.ravel(),
-                                'Test_value': value_test_LR.ravel(),
-                                'Test_Labels': y_test,
-                                'ID_test': ID_test,
-                                'Weights': coefficients_LR_projected.ravel(),
-                                'Bias': bias_LR.ravel(), 
-                                'C': hyperparameters['C'], 
-                                'Std_Parameters': Preprocessed_data_dict['Training set']['Std_Parameters']}
+                         'Train_value': value_train_LR.ravel(),
+                         'Train_Labels': y_train,
+                         'ID_train': ID_train,
+                         'Test': y_test_LR.ravel(),
+                         'Test_value': value_test_LR.ravel(),
+                         'Test_Labels': y_test,
+                         'ID_test': ID_test,
+                         'Weights': coefficients_LR_projected.ravel(),
+                         'Bias': bias_LR.ravel(), 
+                         'C': hyperparameters['C'], 
+                         'Std_Parameters': Preprocessed_data_dict['Training set']['Std_Parameters']}
     
     if min_NPV_Models:
         Results[set_name+'_minNPV'] = {'Train': y_train_LR_0.ravel(),
-                                                'Train_value': value_train_LR.ravel(),
-                                                'Train_Labels': y_train,
-                                                'ID_train': ID_train,
-                                                'Test': y_test_LR_0.ravel(),
-                                                'Test_value': value_test_LR.ravel(),
-                                                'Test_Labels': y_test, 
-                                                'ID_test': ID_test}
-
-    return Results
+                                       'Train_value': value_train_LR.ravel(),
+                                       'Train_Labels': y_train,
+                                       'ID_train': ID_train,
+                                       'Test': y_test_LR_0.ravel(),
+                                       'Test_value': value_test_LR.ravel(),
+                                       'Test_Labels': y_test, 
+                                       'ID_test': ID_test}
+        
+    return_list = [Results]
+    if return_model:
+        return_list.append(LR)
+    if return_data:
+        return_list.append(Preprocessed_data_dict)
+    
+    if len(return_list)>1:
+        return tuple(return_list)
+    else:
+        return Results
