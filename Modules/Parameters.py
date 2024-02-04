@@ -3,7 +3,7 @@ min_NPV_Models = True
 min_NPV = 0.97
 
 ## Correlation threshod
-corr_th = 0.8
+#corr_th = 0.8
 corr_th_univ = 0.99
 
 ## Min % no nans per column
@@ -41,7 +41,6 @@ age_min = 30 # 30
 age_max = 100 # 100
 
 ## Delta onset
-donset_masking = True
 donset_min = 0 # 0
 donset_max = 30 # 30
 
@@ -56,7 +55,7 @@ plot_minNPV_models = False
 use_manual_selection = True
 
 ## Dataset to use
-use_CCIWHOMasked_dataset = True
+use_CCIMasked_dataset = True
 
 ## Regulariser
 find_regulariser_before_average = False
@@ -81,6 +80,7 @@ allinput_set = immunecells_set + cytokines_set + demographics_set + scores_set +
 IC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
 Dem_set = ['age', 'sex', 'delta_onset']
 CK_set = ['IL2R', 'IL6', 'IL8', 'IL10', 'IP10']
+BM_set = ['PROADM', 'LDH', 'PCR']
 
 ## File names
 file_name_inpatients = 'DataInpatients_CCIMasked.xlsx'
@@ -94,29 +94,18 @@ path_results = '/Users/riccardo/Documents/GitHub/COVID19Classification/Results/'
 path_figures = '/Users/riccardo/Documents/GitHub/COVID19Classification/Figures/'
 path_datasets = '/Users/riccardo/Documents/GitHub/COVID19Classification/Data/'
 
+
 ## --- Folder basic stat --- ##
 foldername_basicstatresults = 'BasicStatAnalysis/'
 
 
 ## --- Experiment description --- ##
-exp_description = ''
 
 # Delta onset
-if donset_masking:
-    if donset_min:
-        exp_description = exp_description + '_DOnsetMin#%d' % donset_min
-        if donset_max:
-            exp_description = exp_description + '#Max#%d' % donset_max
-    elif donset_max:
-        exp_description = exp_description + '_DOnsetMax#%d' % donset_max
+exp_description = '_DOnsetMin#%d#Max#%d' % (donset_min, donset_max)
 
 # Age
-if age_min:
-    exp_description = exp_description + '_AgeMin#%d' % age_min
-    if age_max:
-        exp_description = exp_description + '#Max#%d' % age_max
-elif age_max:
-    exp_description = exp_description + '_AgeMax#%d' % age_max
+exp_description = exp_description + '_AgeMin#%d#Max#%d' % (age_min, age_max)
 
 # Target
 if train_target==test_target:
@@ -146,8 +135,8 @@ else:
 exp_description = exp_description + '_Std#%s' % (std_method)
 
 # Dataset
-if use_CCIWHOMasked_dataset:
-    exp_description = exp_description + '_DatasetMaskedByCCIWHO'
+if use_CCIMasked_dataset:
+    exp_description = exp_description + '_DatasetMaskedByCCI'
     
 # Regulariser
 if find_regulariser_before_average:
@@ -157,9 +146,6 @@ else:
 
 ## --- Folder multiv. --- ##
 exp_multiv_description = ''
-
-# CorrTh
-exp_multiv_description = exp_multiv_description + '_CorrTh#%s' % (str(corr_th).replace('0.', ''))
 
 # Nan masking
 if do_nan_masking:
@@ -181,7 +167,9 @@ foldername_multiv = 'MultivModels' + exp_description + exp_multiv_description + 
 
 
 ## --- Folder univ. --- ##
+
 exp_univ_description = ''
+
 # Nan masking
 if do_nan_masking_univ:
     exp_univ_description = exp_univ_description + '_NanMask#True'
