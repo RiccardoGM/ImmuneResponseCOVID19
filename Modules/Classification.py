@@ -371,7 +371,7 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
             bias_LR = LR.intercept_
             coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
             for i, idx in enumerate(idx_cat):
-                coefficients_LR_projected.insert(idx, coefficients_LR[0, i])
+                coefficients_LR_projected.insert(idx, coefficients_LR[i])
             coefficients_LR_projected = np.array(coefficients_LR_projected)
 
             
