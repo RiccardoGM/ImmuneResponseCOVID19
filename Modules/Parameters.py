@@ -74,7 +74,7 @@ demographics_set = ['age', 'sex', 'delta_onset']
 scores_set = ['CCI (charlson comorbidity index)', 'SOFA', 'NEWS', 'qCSI', '4 C score']
 biomarkers_set = ['PROADM', 'LDH', 'PCR']
 output_set = ['merged_death', 'IOT+death', 'IOT+ICU+death', 'WHO=>3']
-allinput_set = immunecells_set + cytokines_set + demographics_set + scores_set + biomarkers_set
+allinput_set = demographics_set + immunecells_set + cytokines_set + biomarkers_set + scores_set
 
 ## Variables of multivariate models
 IC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
