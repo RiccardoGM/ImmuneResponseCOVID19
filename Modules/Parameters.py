@@ -154,11 +154,6 @@ if do_nan_masking:
     else:
         exp_multiv_description = exp_multiv_description + '_NansRow#%d' % int(100*nan_masking)
     
-
-if do_nan_masking_univ:
-    exp_multiv_description = exp_multiv_description + '_UnivNanMask#True'
-else:
-    exp_multiv_description = exp_multiv_description + '_UnivNanMask#False'
     
 # PCA % var. threshold
 exp_multiv_description = exp_multiv_description + '_PCAPercVarTh#%d' % int(pca_var_threshold*100)
