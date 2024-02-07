@@ -533,21 +533,22 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     y_test = Preprocessed_data_dict['Test set']['Y'].values.ravel()
     
     
-    ## Apply pca to non-categorical data
+    ## Apply pca to non-categorical data (if more than 1 non-cat. feature)
     Data_pca = Data_train[columns].values
     idx_cat = [i for i in range(Data_pca.shape[1]) if set(Data_pca[:, i]).issubset(set([0, 1, np.nan]))]
     idx_num = [i for i in range(Data_pca.shape[1]) if i not in idx_cat]
-    X_train_nocat = X_train[:, idx_num]
-    pca = PCA(svd_solver='full')
-    pca.fit(X_train_nocat)
-    mask_components = pca.explained_variance_ratio_.ravel()<pca_var_threshold
-    pca.components_[mask_components] = 0
-    X_train_nocat = pca.transform(X_train_nocat)
-    X_train = np.hstack((X_train[:, idx_cat], X_train_nocat))
-    if 'Test set' in Preprocessed_data_dict.keys():
-        X_test_nocat = X_test[:, idx_num]
-        X_test_nocat = pca.transform(X_test_nocat)
-        X_test = np.hstack((X_test[:, idx_cat], X_test_nocat))
+    if len(idx_num)>1:
+        X_train_nocat = X_train[:, idx_num]
+        pca = PCA(svd_solver='full')
+        pca.fit(X_train_nocat)
+        mask_components = pca.explained_variance_ratio_.ravel()<pca_var_threshold
+        pca.components_[mask_components] = 0
+        X_train_nocat = pca.transform(X_train_nocat)
+        X_train = np.hstack((X_train[:, idx_cat], X_train_nocat))
+        if 'Test set' in Preprocessed_data_dict.keys():
+            X_test_nocat = X_test[:, idx_num]
+            X_test_nocat = pca.transform(X_test_nocat)
+            X_test = np.hstack((X_test[:, idx_cat], X_test_nocat))
                 
                 
     ## Hyperparameters grid search
@@ -570,10 +571,13 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     value_test_LR = LR.decision_function(X_test)
     coefficients_LR = LR.coef_.copy().reshape(-1,)
     bias_LR = LR.intercept_.copy()
-    coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
-    for i, idx in enumerate(idx_cat):
-        coefficients_LR_projected.insert(idx, coefficients_LR[i])
-    coefficients_LR_projected = np.array(coefficients_LR_projected)
+    if len(idx_num)>1:
+        coefficients_LR_projected = list(pca.inverse_transform(coefficients_LR[len(idx_cat):]))
+        for i, idx in enumerate(idx_cat):
+            coefficients_LR_projected.insert(idx, coefficients_LR[i])
+        coefficients_LR_projected = np.array(coefficients_LR_projected)
+    else:
+        coefficients_LR_projected = np.array(coefficients_LR)
 
     
     ## Prediction min NPV models
