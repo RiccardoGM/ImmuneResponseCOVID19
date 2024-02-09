@@ -77,7 +77,7 @@ output_set = ['merged_death', 'IOT+death', 'IOT+ICU+death', 'WHO=>3']
 allinput_set = demographics_set + immunecells_set + cytokines_set + biomarkers_set + scores_set
 
 ## Variables of multivariate models
-IC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
+FC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
 Dem_set = ['age', 'sex', 'delta_onset']
 CK_set = ['IL2R', 'IL6', 'IL8', 'IL10', 'IP10']
 BM_set = ['PROADM', 'LDH', 'PCR']
