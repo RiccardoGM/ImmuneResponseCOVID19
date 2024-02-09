@@ -48,6 +48,11 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     DataOutpatients = pd.read_excel(path_import_outpatients, engine='openpyxl')
     DataOutpatients.drop(columns=['Unnamed: 0'], inplace=True)
 
+   # Filter Outpatients
+    mask_Covid = DataOutpatients['COVID ']==1
+    mask_noAdmission =  DataOutpatients['Admission']==0
+    DataOutpatients = DataOutpatients.loc[mask_Covid & mask_noAdmission,].copy()
+
     # Format nan/nat to none
     DataInpatients = DataInpatients.where(DataInpatients.notnull().values, -1e100)
     DataInpatients = DataInpatients.where(DataInpatients.values!=-1e100, np.nan)
