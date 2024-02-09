@@ -549,6 +549,11 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
             X_test_nocat = X_test[:, idx_num]
             X_test_nocat = pca.transform(X_test_nocat)
             X_test = np.hstack((X_test[:, idx_cat], X_test_nocat))
+
+    
+    ## Input data
+    input_data_tain_test = {'Train': X_train, 
+                            'Test': X_test}
                 
                 
     ## Hyperparameters grid search
@@ -627,7 +632,7 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     if return_model:
         return_list.append(LR)
     if return_data:
-        return_list.append(Preprocessed_data_dict)
+        return_list.append(input_data_tain_test)
     
     if len(return_list)>1:
         return tuple(return_list)
