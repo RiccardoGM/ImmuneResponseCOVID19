@@ -37,12 +37,12 @@ pca_var_threshold = 0.05
 test_size = 0.30
 
 ## Age
-age_min = 30 # 30
-age_max = 100 # 100
+age_min = 70 # 30 or 70
+age_max = 100 # 100 or 70
 
 ## Delta onset
-donset_min = 0 # 0
-donset_max = 30 # 30
+donset_min = 0 # 0 or 11
+donset_max = 30 # 30 or 10
 
 ## Target
 train_target = 'IOT+death' # death, merged_death, infectious_complications, IOT+death, IOT+ICU+death, IOT+death+WHOge4
