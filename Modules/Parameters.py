@@ -93,6 +93,7 @@ file_name_outpatients = 'DataOutpatients.xlsx'
 path_results = '/Users/riccardo/Documents/GitHub/COVID19Classification/Results/'
 path_figures = '/Users/riccardo/Documents/GitHub/COVID19Classification/Figures/'
 path_datasets = '/Users/riccardo/Documents/GitHub/COVID19Classification/Data/'
+path_setsdescription = '/Users/riccardo/Documents/GitHub/COVID19Classification/DatasetsDescription/'
 
 
 ## --- Folder basic stat --- ##
