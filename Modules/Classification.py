@@ -416,6 +416,8 @@ def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=Fal
     if not ignore_sex:
         if 'sex' in columns:
             stratification_columns = stratification_columns + ['sex']
+
+    stratification_columns = list(set(stratification_columns))
         
     while(flag):
         X_train, X_test, y_train, y_test = train_test_split(Data[columns].values, 
