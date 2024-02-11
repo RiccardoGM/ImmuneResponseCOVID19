@@ -29,16 +29,20 @@ imputation_method_univ = 'mean'
 ## Standardization
 std_method = 'PowerTransformer' # 'PowerTransformer' or 'StandardScaler'
 z_score_th = 3.
+std_cat_variables = True
 
 ## PCA 
 pca_var_threshold = 0.05
 
 ## Train-test
 test_size = 0.30
+ignore_sex = False
 
 ## Age
-age_min = 70 # 30 or 70
+age_min = 30 # 30 or 70
 age_max = 100 # 100 or 70
+if age_max<=70:
+    ignore_sex = True # Condition required to split data in this stratum
 
 ## Delta onset
 donset_min = 0 # 0 or 11
