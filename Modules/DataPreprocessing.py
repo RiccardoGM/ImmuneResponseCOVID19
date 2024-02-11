@@ -43,10 +43,12 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     # Import data of hostpitalized patients
     DataInpatients = pd.read_excel(path_import_inpatients, engine='openpyxl')
     DataInpatients.drop(columns=['Unnamed: 0'], inplace=True)
+    print('Original shape inpatients data:', DataInpatients.shape)
 
     # Import data of non-hostpitalized patients
     DataOutpatients = pd.read_excel(path_import_outpatients, engine='openpyxl')
     DataOutpatients.drop(columns=['Unnamed: 0'], inplace=True)
+    print('Original shape outpatients data:', DataOutpatients.shape)
 
    # Filter Outpatients
     mask_Covid = DataOutpatients['COVID ']==1
@@ -84,14 +86,20 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     DataInpatients['delta_onset'] = v
     DataOutpatients['delta_onset'] = np.nan
 
+    # Check/fix CCI
+    CCI_age_pairs = ((50, 1), (60, 2), (70, 3), (80, 4))
+    for pair in CCI_age_pairs:
+        mask_age_CCI = (DataInpatients['age'].values>=pair[0]) & (DataInpatients['CCI (charlson comorbidity index)'].values<pair[1])
+        DataInpatients.loc[mask_age_CCI,['CCI (charlson comorbidity index)']] = pair[1]
+
     # Filter by age
     age = np.round(DataInpatients['age'].values)
-    age_mask = (age >= min_age) & (age < max_age)
+    age_mask = ((age >= min_age) & (age < max_age)) | (pd.isnull(age))
     DataInpatients = DataInpatients.loc[age_mask, :]
 
     # Filter by delta_onset
     donset = np.round(DataInpatients['delta_onset'].values)
-    donset_mask = (donset >= min_donset) & (donset <= max_donset) & (pd.notnull(donset))
+    donset_mask = ((donset >= min_donset) & (donset <= max_donset)) | (pd.isnull(donset))
     DataInpatients = DataInpatients.loc[donset_mask, :]
 
     # Final dataset
