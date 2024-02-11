@@ -253,7 +253,8 @@ def data_dict(Data, target_train, Data_test=pd.DataFrame(), target_test=None, ra
 def models_prediction(Data, test_size, models_dict, target_train, target_test=None, min_NPV=0.97, min_NPV_Models=False, 
                       random_state=None, standardization='default', imputation='knn', do_nan_masking_univ=True, 
                       do_nan_masking=False, nan_masking=None, do_nan_masking_groupwise=False, groups=None, hyperp_dict={},
-                      do_preprocessing=True, fix_outliers=False, do_imputation=True, pca_var_threshold=0.05, ignore_sex=False):
+                      do_preprocessing=True, fix_outliers=False, do_imputation=True, pca_var_threshold=0.05, 
+                      ignore_sex=False, std_cat_variables=False):
 
     ''' Return predictions for a single train-test split, for each model in test_size '''
     
@@ -289,7 +290,8 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
                                                 do_nan_masking_groupwise=do_nan_masking_groupwise, 
                                                 do_nan_masking_univ=do_nan_masking_univ, 
                                                 nan_masking=nan_masking, 
-                                                ignore_sex=ignore_sex)
+                                                ignore_sex=ignore_sex, 
+                                                std_cat_variables=std_cat_variables)
             
             ## Save results
             Results['LR'][set_name] = Results_LR_model[set_name]
@@ -461,7 +463,7 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                      test_size=0.3, hyperp_dict={}, do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', 
                      pca_var_threshold=0.05, standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, 
                      do_nan_masking=False, do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None, 
-                     return_model=False, return_data=False, ignore_sex=False):
+                     return_model=False, return_data=False, ignore_sex=False, std_cat_variables=False):
 
     columns = features
             
@@ -529,7 +531,8 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                                                 imputation=imputation, # 'default' or 'PowerTransformer'
                                                 std_parameters_dict=std_parameters_dict,
                                                 fix_outliers=fix_outliers, 
-                                                do_imputation=do_imputation)
+                                                do_imputation=do_imputation, 
+                                                std_cat_variables=std_cat_variables)
     else:
         Preprocessed_data_dict = data_dict(Data_train,
                                             target_train,
