@@ -23,7 +23,7 @@ from Modules import CustomClasses as cc, Parameters
 # ---- # ---- # ---- # Functions # ---- # ---- # ---- #
 
 def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None, standardization='dafault', 
-                  imputation='knn', std_parameters_dict={}, fix_outliers=False, do_imputation=True):
+                  imputation='knn', std_parameters_dict={}, fix_outliers=False, do_imputation=True, std_cat_variables=False):
     
     '''
        This function pre-processes data for training and testing.
@@ -52,6 +52,7 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
     Features_cat = [feature for feature in Features if (np.isin(Data_local[feature].dropna().unique(), [0, 1]).all())]
     Features_noncat = [feature for feature in Features if feature not in Features_cat]
     n_noncat_features = len(Features_noncat)
+    n_cat_features = len(Features_cat)
     
     ## Datasets from input data
     Data_X = Data_local[Features].copy().astype(float)
@@ -155,7 +156,18 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
                 # re-standardize
                 X = ss.transform(X)
             Data_X_test.loc[:, Features_noncat] = X
-        
+    #
+    if n_cat_features>0:
+        if std_cat_variables:
+            ss_cat = StandardScaler()
+            X_cat = Data_X.loc[:, Features_cat].values.copy()
+            X_cat = ss_cat.fit_transform(X_cat)
+            Data_X.loc[:, Features_cat] = X_cat
+            if not Data_test.empty:
+                X_cat_test = Data_X_test.loc[:, Features_cat].values.copy()
+                X_cat_test = ss_cat.transform(X_cat_test)
+                Data_X_test.loc[:, Features_cat] = X_cat_test
+
     ## Return preprocessed datasets
     returns = {}
     df_train = pd.DataFrame(Data_X, columns=Features)
@@ -241,7 +253,7 @@ def data_dict(Data, target_train, Data_test=pd.DataFrame(), target_test=None, ra
 def models_prediction(Data, test_size, models_dict, target_train, target_test=None, min_NPV=0.97, min_NPV_Models=False, 
                       random_state=None, standardization='default', imputation='knn', do_nan_masking_univ=True, 
                       do_nan_masking=False, nan_masking=None, do_nan_masking_groupwise=False, groups=None, hyperp_dict={},
-                      do_preprocessing=True, fix_outliers=False, do_imputation=True, pca_var_threshold=0.05):
+                      do_preprocessing=True, fix_outliers=False, do_imputation=True, pca_var_threshold=0.05, ignore_sex=False):
 
     ''' Return predictions for a single train-test split, for each model in test_size '''
     
@@ -276,7 +288,8 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
                                                 do_nan_masking=do_nan_masking, 
                                                 do_nan_masking_groupwise=do_nan_masking_groupwise, 
                                                 do_nan_masking_univ=do_nan_masking_univ, 
-                                                nan_masking=nan_masking)
+                                                nan_masking=nan_masking, 
+                                                ignore_sex=ignore_sex)
             
             ## Save results
             Results['LR'][set_name] = Results_LR_model[set_name]
@@ -448,7 +461,7 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                      test_size=0.3, hyperp_dict={}, do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', 
                      pca_var_threshold=0.05, standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, 
                      do_nan_masking=False, do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None, 
-                     return_model=False, return_data=False):
+                     return_model=False, return_data=False, ignore_sex=False):
 
     columns = features
             
@@ -492,7 +505,8 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                                          columns, 
                                          target_train, 
                                          target_test,
-                                         test_size)
+                                         test_size, 
+                                         ignore_sex=ignore_sex)
     else:
         Data_train = Data_masked
         Data_test = nan_masking_fc(Data_test, 
