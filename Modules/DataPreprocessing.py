@@ -94,12 +94,16 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
 
     # Filter by age
     age = np.round(DataInpatients['age'].values)
-    age_mask = ((age >= min_age) & (age < max_age)) | (pd.isnull(age))
+    age_mask = ((age >= min_age) & (age < max_age))
+    if (min_age==30) & (max_age==100):
+        age_mask = age_mask | (pd.isnull(age)) # Include NANs for un-stratified data
     DataInpatients = DataInpatients.loc[age_mask, :]
 
     # Filter by delta_onset
     donset = np.round(DataInpatients['delta_onset'].values)
-    donset_mask = ((donset >= min_donset) & (donset <= max_donset)) | (pd.isnull(donset))
+    donset_mask = ((donset >= min_donset) & (donset <= max_donset))
+    if (min_donset==0) & (max_donset==30):
+        donset_mask = donset_mask | (pd.isnull(donset)) # Include NANs for un-stratified data
     DataInpatients = DataInpatients.loc[donset_mask, :]
 
     # Final dataset
