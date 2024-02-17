@@ -3,6 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+import scipy.stats as st
+from statsmodels.stats.proportion import proportion_confint
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
@@ -393,3 +395,63 @@ def lighten_color(color, amount=0.5):
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
+
+
+# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
+
+def moving_average(Data, col, time_col, half_window=4, min_time=0, max_time=20):
+    Data_local = Data[[col, time_col]].copy().dropna()
+    time_values = Data_local[time_col].values
+    time_v = []
+    mean_v = []
+    half_ci_v = []
+    
+    set_values = set(Data_local[col].values)
+    
+    for timepoint in range(int(min_time), int(max_time)):
+        mask_samples = (time_values>=(timepoint+1-half_window)) & (time_values<=(timepoint+1+half_window))
+        samples = Data_local.loc[mask_samples, col].values
+        n_samples = len(samples)
+        mean_val = np.mean(samples)
+        conf_int = st.t.interval(alpha=0.95, df=n_samples-1, loc=mean_val, scale=st.sem(samples))
+        if set_values==set([0, 1]):
+            conf_int = proportion_confint(count=sum(samples==1), nobs=len(samples), alpha=(1 - 0.95))
+        half_ci = 0.5*(conf_int[1] - conf_int[0])
+        time_v.append(timepoint)
+        mean_v.append(mean_val)
+        half_ci_v.append(half_ci)
+
+    time_v = np.array(time_v)+1
+    mean_v = np.array(mean_v)
+    half_ci_v = np.array(half_ci_v)
+    
+    return time_v, mean_v, half_ci_v
+
+
+# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
+
+def moving_quantiles(Data, col, time_col, q1=0.25, q2=0.5, q3=0.75, half_window=4, min_time=0, max_time=20):
+    Data_local = Data[[col, time_col]].copy().dropna()
+    time_values = Data_local[time_col].values
+    time_v = []
+    q1_v = []
+    q2_v = []
+    q3_v = []
+    
+    for timepoint in range(int(min_time), int(max_time)):
+        mask_samples = (time_values>=(timepoint+1-half_window)) & (time_values<=(timepoint+1+half_window))
+        samples = Data_local.loc[mask_samples, col].values
+        q1_val =  np.quantile(samples, q1)
+        q2_val =  np.quantile(samples, q2)
+        q3_val =  np.quantile(samples, q3)
+        time_v.append(timepoint)
+        q1_v.append(q1_val)
+        q2_v.append(q2_val)
+        q3_v.append(q3_val)
+
+    time_v = np.array(time_v)+1
+    q1_v = np.array(q1_v)
+    q2_v = np.array(q2_v)
+    q3_v = np.array(q3_v)
+
+    return time_v, q1_v, q2_v, q3_v
