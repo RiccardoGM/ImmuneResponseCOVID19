@@ -38,7 +38,7 @@ allinput_set = Parameters.allinput_set
 ## ---------- ##
 
 def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, max_donset=max_donset, z_score_th=z_score_th,
-                       path_import_inpatients=path_import_inpatients, path_import_outpatients=path_import_outpatients):
+                       path_import_inpatients=path_import_inpatients, path_import_outpatients=path_import_outpatients, return_allfeatures=False):
 
     # Import data of hostpitalized patients
     DataInpatients = pd.read_excel(path_import_inpatients, engine='openpyxl')
@@ -120,4 +120,7 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     DataInpatients.reset_index(inplace=True)
     DataOutpatients.reset_index(inplace=True)
     
-    return DataInpatients[['ID']+allinput_set+output_set], DataOutpatients[['ID']+allinput_set+output_set]
+    if return_allfeatures:
+        return DataInpatients, DataOutpatients.loc[:, DataInpatients.columns]
+    else:
+        return DataInpatients[['ID']+allinput_set+output_set], DataOutpatients[['ID']+allinput_set+output_set]
