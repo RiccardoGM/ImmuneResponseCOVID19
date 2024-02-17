@@ -86,6 +86,13 @@ Dem_set = ['age', 'sex', 'delta_onset']
 CK_set = ['IL2R', 'IL6', 'IL8', 'IL10', 'IP10']
 BM_set = ['PROADM', 'LDH', 'PCR']
 
+## Other variables
+comorbidities_set = ['obesity', 'dyslipidemia', 'cardiovascular_disease', 'diabetes', 'BPCO', 'IRC', 'hepatopathy',
+                     'hypertension', 'tumor', 'oncohematology', 'autoimmunity', 'immunosuppressed']
+TC_set = ['parenchima_width', 'TC1_level']
+therapies_set = ['cortisone']
+hometherapies_set = ['home_therapy#immunosuppressants', 'home_therapy#immunomodulators', 'home_therapy#steroids']
+
 ## File names
 file_name_inpatients = 'DataInpatients_CCIMasked.xlsx'
 file_name_outpatients = 'DataOutpatients.xlsx'
