@@ -524,20 +524,20 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     Data_test = Data_test[columns+[target_test, 'ID']]
     if do_preprocessing:
         Preprocessed_data_dict = preprocessing(Data_train,
-                                                target_train,
-                                                target_test=target_test,
-                                                Data_test=Data_test,
-                                                standardization=standardization, 
-                                                imputation=imputation, # 'default' or 'PowerTransformer'
-                                                std_parameters_dict=std_parameters_dict,
-                                                fix_outliers=fix_outliers, 
-                                                do_imputation=do_imputation, 
-                                                std_cat_variables=std_cat_variables)
+                                               target_train,
+                                               target_test=target_test,
+                                               Data_test=Data_test,
+                                               standardization=standardization, 
+                                               imputation=imputation, # 'default' or 'PowerTransformer'
+                                               std_parameters_dict=std_parameters_dict,
+                                               fix_outliers=fix_outliers, 
+                                               do_imputation=do_imputation, 
+                                               std_cat_variables=std_cat_variables)
     else:
         Preprocessed_data_dict = data_dict(Data_train,
-                                            target_train,
-                                            target_test=target_test,
-                                            Data_test=Data_test)
+                                           target_train,
+                                           target_test=target_test,
+                                           Data_test=Data_test)
     
     
     ## Training set
@@ -641,6 +641,7 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
         Results[set_name+'_minNPV'] = {'Train': y_train_LR_0.ravel(),
                                        'Train_value': value_train_LR.ravel(),
                                        'Train_Labels': y_train,
+                                       'Cutoff': threshold,
                                        'ID_train': ID_train,
                                        'Test': y_test_LR_0.ravel(),
                                        'Test_value': value_test_LR.ravel(),
