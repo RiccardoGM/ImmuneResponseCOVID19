@@ -550,6 +550,12 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     X_test = Preprocessed_data_dict['Test set']['X'].values
     ID_test = Preprocessed_data_dict['Test set']['ID'].values.ravel()
     y_test = Preprocessed_data_dict['Test set']['Y'].values.ravel()
+
+
+    ## Univariate model flag
+    single_predictor = False
+    if X_train.shape[1]==1:
+        single_predictor = True
     
     
     ## Apply pca to non-categorical data (if more than 1 non-cat. feature)
@@ -641,12 +647,18 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
         Results[set_name+'_minNPV'] = {'Train': y_train_LR_0.ravel(),
                                        'Train_value': value_train_LR.ravel(),
                                        'Train_Labels': y_train,
-                                       'Cutoff': threshold,
                                        'ID_train': ID_train,
                                        'Test': y_test_LR_0.ravel(),
                                        'Test_value': value_test_LR.ravel(),
                                        'Test_Labels': y_test, 
                                        'ID_test': ID_test}
+        if single_predictor:
+            if threshold:
+                idx_cutoff = np.argmin(abs(value_train_LR-threshold))
+                Results[set_name+'_minNPV']['Cutoff'] = X_train.reshape(-1,)[idx_cutoff]
+            else:
+                Results[set_name+'_minNPV']['Cutoff'] = np.nan
+
         
     return_list = [Results]
     if return_model:
