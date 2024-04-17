@@ -275,7 +275,7 @@ def change_names_2(names, units=False):
             new_name = 'Lymph'
             
         elif element=='NeutroBaEu/uL':
-            new_name = 'Neutro$^*$'
+            new_name = 'Granulo'
             
         elif element=='LRTE % dei CD4':
             new_name = 'RTE \%$_{\mathrm{CD4}}$'
