@@ -34,6 +34,10 @@ std_cat_variables = True
 ## PCA 
 pca_var_threshold = 0.05
 
+## Preprocessing
+do_preprocessing_multiv = True # Always True
+do_preprocessing_univ = False # True or False (False: no standardization)
+
 ## Train-test
 test_size = 0.30
 ignore_sex = False
@@ -182,5 +186,9 @@ if do_nan_masking_univ:
     exp_univ_description = exp_univ_description + '_NanMask#True'
 else:
     exp_univ_description = exp_univ_description + '_NanMask#False'
+
+# Preprocessing
+if not do_preprocessing_univ:
+    exp_univ_description = exp_univ_description + '_Std#False'
 
 foldername_univ = 'UnivModels' + exp_description + exp_univ_description + '/'
