@@ -355,6 +355,60 @@ def best_threshold_class0(y_pred, value_pred, y_target, min_NPV=0.97, fixed_thre
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
+def best_threshold_class0_2(y_pred, value_pred, y_target, min_NPV=0.97, fixed_threshold=False):
+
+    '''
+       This function returns the value threshold giving the best specificity for the given min_NPV.
+       Input: 
+             1) y_pred: 1D np.array (n_samples) with class predictions.
+             2) value_pred: 1D np.array (n_samples) with classifier value for each prediction.
+             3) y_target: 1D np.array (n_samples) with class targets.
+             4) min_NPV: float in (0, 1); minimum required negative predictive value.
+             5) fixed_threshold: boolean; whether to set NPV=min_NPV.
+    '''
+    
+    value_pred_sort = np.sort(value_pred)[::-1]
+    idx = 0
+    idx_max = len(value_pred_sort)
+    start = value_pred_sort[idx]
+    best_threshold = threshold = start
+    stop = value_pred_sort[idx_max-1]
+    
+    y_pred_0 = np.zeros_like(y_pred)
+    y_pred_0[value_pred<=threshold] = 0
+    y_pred_0[value_pred>threshold] = 1
+    
+    score = recall_score(1-y_target, 1-y_pred_0)
+    best_score = 0
+    
+    error = 1e-2
+    
+    while threshold > stop:
+        y_pred_0[value_pred<=threshold] = 0
+        y_pred_0[value_pred>threshold] = 1
+        score = recall_score(1-y_target, 1-y_pred_0)
+        control_score = precision_score(1-y_target, 1-y_pred_0)
+        if score > best_score:
+            if fixed_threshold:
+                if abs(control_score - min_NPV)<error:
+                    best_score = score
+                    best_threshold = threshold
+            else:
+                if control_score > min_NPV:
+                    best_score = score
+                    best_threshold = threshold
+        
+        # Update threshold
+        idx += 1
+        threshold = value_pred_sort[idx]
+        
+    if best_score>0:
+        return best_threshold
+    else:
+        return None
+
+# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
+
 def isfloat(value):
     try:
         float(value)
@@ -612,7 +666,7 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
     
     ## Prediction min NPV models
     if min_NPV_Models:
-        threshold = best_threshold_class0(y_pred=y_train_LR,
+        threshold = best_threshold_class0_2(y_pred=y_train_LR,
                                             value_pred=value_train_LR,
                                             y_target=y_train,
                                             min_NPV=min_NPV,
