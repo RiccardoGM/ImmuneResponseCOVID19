@@ -128,7 +128,7 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     DataInpatients = DataInpatients.loc[donset_mask, :]
 
 
-    # Final dataset
+    # Filter outliers
     std = StandardScaler()
     ptr = PowerTransformer()
     for name in allinput_set:
