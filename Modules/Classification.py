@@ -32,7 +32,7 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
              2) target_train: string corresponding to target column in Data used for training.
              3) target_test: string corresponding to target column in Data used for testing.
              4) Data_test: pandas DataFrame with all covariates ready for preprocessing.
-             5) standardization: string, 'default', 'PowerTransformer', 'QuantileTransformer'
+             5) standardization: string, 'default', 'PowerTransformer'
              6) imputation: string, 'knn' or 'mean'
              7) nan_masking: False or float indicating the fraction of nans allowed in each row.
              8) random_state: seed for random state.
@@ -256,7 +256,7 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
                       do_preprocessing=True, fix_outliers=False, do_imputation=True, pca_var_threshold=0.05, 
                       ignore_sex=False, std_cat_variables=False):
 
-    ''' Return predictions for a single train-test split, for each model in test_size '''
+    ''' Return predictions for a single train-test split, for each model in models_dict '''
     
     if target_test==None:
         target_test = target_train
@@ -406,6 +406,7 @@ def best_threshold_class0_2(y_pred, value_pred, y_target, min_NPV=0.97, fixed_th
         return best_threshold
     else:
         return None
+
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
