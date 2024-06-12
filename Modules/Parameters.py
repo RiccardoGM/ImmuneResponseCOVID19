@@ -1,5 +1,5 @@
 ## Minimum NPV
-min_NPV_Models = True
+min_NPV_Models = False
 min_NPV = 0.97
 
 ## Correlation threshod
@@ -13,14 +13,14 @@ perc_nonans_univ = 10
 ## Nan masking row-wise
 do_nan_masking = True
 do_nan_masking_univ = True
-do_nan_masking_groupwise = True # if to apply nan-masking group-wise for each row
+do_nan_masking_groupwise = True # apply nan-masking group-wise for each row
 nan_masking = 0.5 # max % nans allowed per row or per group
 
 ## Reference time
 ref_time = 't0'
 
 ## N samples for average
-N_av = 100
+N_av = 100 #100
 
 ## Imputation
 imputation_method = 'knn'
@@ -36,7 +36,7 @@ pca_var_threshold = 0.05
 
 ## Preprocessing
 do_preprocessing_multiv = True # Always True
-do_preprocessing_univ = False # True or False (False: no standardization)
+do_preprocessing_univ = True # True or False (False: no standardization)
 
 ## Train-test
 test_size = 0.30
@@ -50,7 +50,7 @@ if age_max<=70:
 
 ## Delta onset
 donset_min = 0 # 0 or 11
-donset_max = 30 # 30 or 10
+donset_max = 30 # 10 or 30
 
 ## Target
 train_target = 'IOT+death' # death, merged_death, infectious_complications, IOT+death, IOT+ICU+death, IOT+death+WHOge4
