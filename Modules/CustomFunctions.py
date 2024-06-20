@@ -2,13 +2,18 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from sklearn.decomposition import PCA
 import scipy.stats as st
 from statsmodels.stats.proportion import proportion_confint
+from sklearn.utils import resample
+
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def SetPlotParams(magnification=1.0, ratio=float(2.2/2.7), height=None, width=None, fontsize=11., ylabelsize=None, xlabelsize=None, lines_w=1.5, axes_lines_w=0.7, legendmarker=True, tex=False, autolayout=True, handlelength=1.5):
+def SetPlotParams(magnification=1.0, ratio=float(2.2/2.7), height=None, width=None, fontsize=11., 
+                  ylabelsize=None, xlabelsize=None, lines_w=1.5, axes_lines_w=0.7, legendmarker=True, 
+                  tex=False, autolayout=True, handlelength=1.5):
     
     #plt.style.use('ggplot')
 
@@ -75,20 +80,17 @@ def SetPlotParams(magnification=1.0, ratio=float(2.2/2.7), height=None, width=No
     plt.rcParams['ytick.minor.size'] = 0
     plt.rcParams['xtick.major.pad']= 5.
     plt.rcParams['ytick.major.pad']= 5.
-
     #plt.rcParams['font.sans-serif'] = 'Helvetica'
     #plt.rcParams['font.serif'] = 'mc'
     plt.rcParams['text.usetex'] = tex # set to True for TeX-like fonts
-    #plt.rcParams['text.latex.preamble'] = r'\usepackage{sfmath} \usepackage{upgreek} \usepackage{siunitx}'
-    #mpl.rc('text.latex', preamble=r'\usepackage{sfmath}')
-    #plt.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
-    #plt.rcParams['mathtext.default'] = 'regular'
-    #plt.rcParams['mathtext.fontset'] = 'stixsans'
-    #plt.rcParams['font.family'] = 'sans-serif'
-    #plt.rc('font', family='sans-serif')
 
-    #sn.set_context("paper", rc={"font.size":11, "axes.titlesize":11, "axes.labelsize":11}) # uncomment for seaborn
-    
+    mpl.rc('text', usetex = True)
+    mpl.rc('text.latex', preamble=r'\usepackage{sfmath}')
+    mpl.rcParams['axes.spines.right'] = False
+    mpl.rcParams['axes.spines.top'] = False
+    mpl.rcParams['axes.spines.left'] = True
+    mpl.rcParams['axes.spines.bottom'] = True
+
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
@@ -176,110 +178,39 @@ def MLR_axis(model, Data, Data_test=np.array([]), use_bias=False):
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def change_names(names, greekletters=False, cytokines=False, bloodtests=False, flowcyt=False):
+def change_names(names, units=False):
     
     new_names = []
-    for i, element in enumerate(names):
-        if '(charlson comorbidity index)' in element:
-            new_name = 'CCI'
-        elif 'parenchima' in element:
-            new_name = 'par. ext.'
-        elif element=='MONO DR IFI':
-            new_name = 'Mono IFI'
-        elif element=='Mono DR %':
-            new_name = 'HLADR + (% Mono)'
-        elif element=='LRTE % dei CD4':
-            new_name = 'LRTE (% CD4)'
-        elif element=='score_Cesselli':
-            new_name = 'Ces. score'
-        elif element=='TC1_level':
-            new_name = 'CT severity'
-        elif element=='PCR':
-            new_name = 'CRP'
-        elif element=='PROADM':
-            new_name = 'proADM'
-        else:
-            new_name = element
-            if 'Linfo' in new_name:
-                new_name = new_name.replace('Linfo', 'Lymph')
-            if 'IOT' in new_name:
-                new_name = new_name.replace('IOT', 'OTI')
-            if '_' in new_name:
-                new_name = new_name.replace('_', ' ')
-            if 'POS' in new_name:
-                new_name = new_name.replace('POS', '+')
-            if '4 C' in new_name:
-                new_name = new_name.replace('4 C', '4C')
-            if 'T ' in new_name:
-                new_name = new_name.replace('T ', '')
-            if 'B ' in new_name:
-                new_name = new_name.replace('B ', '')
-
-            if '% CD4 ' in new_name:
-                new_name = new_name.replace('% CD4 ', '') + ' (% CD4)'
-            elif '% CD8 ' in new_name:
-                new_name = new_name.replace('% CD8 ', '') + ' (% CD8)'
-            elif ' %' in new_name:
-                new_name = new_name.replace(' %', ' (%lymph)')
-                
-        if cytokines:
-            new_name = new_name.replace('/uL', ' $pg$/uL')
-        elif flowcyt:
-            new_name = new_name.replace('/uL', ' $U$/uL')
-        elif bloodtests:
-            new_name = new_name + ' $U$/uL'
-            
-        if greekletters:
-            if 'uL' in new_name:
-                new_name = new_name.replace('uL', '$\mu l$')            
-            
-        new_names.append(new_name)
-            
-    return new_names
-
-
-# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
-
-def change_names_2(names, units=False):
-    
-    new_names = []
-    for i, element in enumerate(names):
+    for element in names:
         
         new_name = element
         
         if element=='CCI (charlson comorbidity index)':
             new_name = 'CCI'
 
-        # delta onset
+        # Delta onset
         elif element=='delta_onset':
             new_name = '$\mathrm{\Delta t_{ons}}$'
-            
-        # CT scan
-        elif element=='parenchima_width':
-            new_name = 'par. ext.'
-        elif element=='TC1_level':
-            new_name = 'CT severity'
 
-            
-        # Flowcyt
+        # Flow cytometry
         elif element=='Mono/uL':
             new_name = 'Mono'        
-        elif element=='MONO DR IFI':
-            new_name = 'Mono$^{\mathrm{+}}$ IFI'
+        elif element=='Mono DR IF':
+            new_name = 'Mono$^{\mathrm{+}}$ IF'
         elif element=='Mono DR %':
             new_name = 'Mono$^{\mathrm{+}}$ \%'
             
         elif element=='WBC/uL':
             new_name = 'WBC'
-        elif element=='Linfo/uL':
+        elif element=='Lymph/uL':
             new_name = 'Lymph'
             
-        elif element=='NeutroBaEu/uL':
+        elif element=='Granulo/uL':
             new_name = 'Granulo'
             
-        elif element=='LRTE % dei CD4':
+        elif element=='RTE % CD4':
             new_name = 'RTE \%$_{\mathrm{CD4}}$'
-        elif element=='LRTE/uL':
+        elif element=='RTE/uL':
             new_name = 'RTE'
         elif element=='T CD3 %':
             new_name = 'CD3 \%lym'
@@ -296,7 +227,7 @@ def change_names_2(names, units=False):
             new_name = 'CD4'
         elif element=='T CD4 HLADR %':
             new_name = 'CD4$^{\mathrm{+}}$ \%lym'
-        elif element=='% T CD4 HLADR POS':
+        elif element=='% T CD4 HLADR+':
             new_name = 'CD4$^{\mathrm{+}}$ \%'
             
         elif element=='T CD8 %':
@@ -305,7 +236,7 @@ def change_names_2(names, units=False):
             new_name = 'CD8'
         elif element=='T CD8 HLADR %':
             new_name = 'CD8$^{\mathrm{+}}$ \%lym'
-        elif element=='% T CD8 HLADR POS':
+        elif element=='% T CD8 HLADR+':
             new_name = 'CD8$^{\mathrm{+}}$ \%'
             
         elif element=='B CD19/uL':
@@ -316,33 +247,14 @@ def change_names_2(names, units=False):
             new_name = 'NK'
         elif element=='NK %':
             new_name = 'NK \%lym'
-
             
-        # Biomarkers
-        elif element=='PCR':
-            new_name = 'CRP'
-        elif element=='PROADM':
-            new_name = 'proADM'
-
-            
-        # Scores
-        elif element=='score_Cesselli':
-            new_name = 'Ces. score'
-        elif element=='4 C score':
-            new_name = '4C'
-            
-            
-         # Cytokines
+        # Cytokines
         elif element=='IFNGC':
             new_name = 'IFN-$\mathrm{\gamma}$'    
             
         # Outcome data
         elif element=='hospitalization_length':
             new_name = 'hosp. stay'
-        elif 'IOT' in element:
-            new_name = new_name.replace('IOT', 'OTI')
-        elif 'merged_' in element:
-            new_name = new_name.replace('merged', '')
         elif '_' in element:
             new_name = new_name.replace('_', ' ')
 
@@ -350,25 +262,30 @@ def change_names_2(names, units=False):
         # Add units
         if units:
             # U/ul
-            list1 = ['WBC/uL', 'Mono/uL', 'Linfo/uL','T CD3/uL', 'LRTE/uL',
-                     'T CD3/uL', 'T CD4/uL','T CD8/uL','CD4/CD8','NK/uL','B CD19/uL',
-                     'T CD3 HLADR/uL','T NK-like/uL','LRTE/uL','MONO DR IFI', 
-                     'LDH'] + ['NeutroBaEu/uL']
+            list1 = ['WBC/uL', 'Mono/uL', 'Lymph/uL','T CD3/uL', 'RTE/uL',
+                     'T CD3/uL', 'T CD4/uL', 'T CD8/uL', 'NK/uL', 'B CD19/uL',
+                     'T CD3 HLADR/uL', 'T NK-like/uL', 'RTE/uL'] + ['Ganulo/uL']
             
             if element in list1:
-                new_name += ' $U$/$\mu$$l$'
+                new_name += ' U/$\mu$L'
                 
-            if element=='PROADM':
-                new_name += ' $ng$/$ml$'
+            if element=='Mono DR IF':
+                new_name += ' U'
+
+            if element=='LDH':
+                new_name += ' U/L'
+
+            if element=='proADM':
+                new_name += ' nmol/L'
                 
-            if element=='PCR':
-                new_name += ' $mg$/$l$'
+            if element=='CRP':
+                new_name += ' mg/L'
 
                 
             # pg/ul
             list2 = ['IFNGC', 'IL10', 'IL1B', 'IL2R', 'IL6', 'IL6C', 'IL8', 'IP10']
             if element in list2:
-                new_name += ' $pg$/$ml$'                 
+                new_name += ' pg/mL'                 
             
         new_names.append(new_name)
             
@@ -455,3 +372,23 @@ def moving_quantiles(Data, col, time_col, q1=0.25, q2=0.5, q3=0.75, half_window=
     q3_v = np.array(q3_v)
 
     return time_v, q1_v, q2_v, q3_v
+
+
+# ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
+
+def bootstrap_ci_mean(v, n=500, alpha=5., seed=1234):
+    # Bootstrap means
+    np.random.seed(seed)
+    bootstrap_means = []
+    for _ in range(n):
+        sample_scores = resample(v)
+        bootstrap_means.append(np.mean(sample_scores))
+
+    # Calculate the mean of the bootstrap means
+    mean_bootstrap = np.mean(bootstrap_means)
+
+    # Calculate the bootstrap confidence interval (95%)
+    ci_lower = np.percentile(bootstrap_means, alpha/2.)
+    ci_upper = np.percentile(bootstrap_means, 100-(alpha/2.))
+
+    return ci_lower, ci_upper, mean_bootstrap

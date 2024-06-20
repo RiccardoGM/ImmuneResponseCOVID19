@@ -5,12 +5,10 @@ from sklearn.preprocessing import StandardScaler, PowerTransformer
 import sys
 import os
 
-# Add path to custom modules
+# Custom modules
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
-sys.path.append('/Users/riccardo/Documents/GitHub/COVID19Classification/')
+sys.path.append('/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19Local/')
 print(sys.version)
-
-# Import custom modules
 from Modules import Parameters
 
 ## ---------- ##
@@ -41,24 +39,24 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
                        path_import_inpatients=path_import_inpatients, path_import_outpatients=path_import_outpatients, 
                        return_allfeatures=False, return_controlset=False):
 
+
     # Import data of hostpitalized patients
     DataInpatients = pd.read_excel(path_import_inpatients, engine='openpyxl')
-    DataInpatients.drop(columns=['Unnamed: 0'], inplace=True)
     print('Original shape inpatients data:', DataInpatients.shape)
 
 
     # Import data of non-hostpitalized patients
     DataOutpatients = pd.read_excel(path_import_outpatients, engine='openpyxl')
-    DataOutpatients.drop(columns=['Unnamed: 0'], inplace=True)
     print('Original shape outpatients data:', DataOutpatients.shape)
 
 
    # Filter Outpatients
     mask_Covid = DataOutpatients['COVID ']==1
     mask_noCovid = DataOutpatients['COVID ']==0
-    mask_noAdmission =  DataOutpatients['Admission']==0
-    DataControlpatients = DataOutpatients.loc[mask_noCovid & mask_noAdmission,].copy()
-    DataOutpatients = DataOutpatients.loc[mask_Covid & mask_noAdmission,].copy()
+    mask_noadmission =  DataOutpatients['admission']==0
+    DataControlpatients = DataOutpatients.loc[mask_noCovid & mask_noadmission,].copy()
+    DataOutpatients = DataOutpatients.loc[mask_Covid & mask_noadmission,].copy()
+
 
     # Format nan/nat to none
     DataInpatients = DataInpatients.where(DataInpatients.notnull().values, -1e100)
@@ -71,21 +69,21 @@ def data_preprocessing(min_age=min_age, max_age=max_age, min_donset=min_donset, 
     DataControlpatients = DataControlpatients.where(DataControlpatients.values!=-1e100, np.nan)
 
 
-    # Add neutro* variable
+    # Add granulocytes variable
     new_idx = DataInpatients.columns.get_loc('WBC/uL') + 1
-    v = DataInpatients['WBC/uL'].values - (DataInpatients['Mono/uL'].values + DataInpatients['Linfo/uL'].values)
+    v = DataInpatients['WBC/uL'].values - (DataInpatients['Mono/uL'].values + DataInpatients['Lymph/uL'].values)
     v[v<0] = 0
-    DataInpatients.insert(loc=new_idx, column='NeutroBaEu/uL', value=v)
+    DataInpatients.insert(loc=new_idx, column='Granulo/uL', value=v)
     #
     new_idx = DataOutpatients.columns.get_loc('WBC/uL') + 1
-    v = DataOutpatients['WBC/uL'].values - (DataOutpatients['Mono/uL'].values + DataOutpatients['Linfo/uL'].values)
+    v = DataOutpatients['WBC/uL'].values - (DataOutpatients['Mono/uL'].values + DataOutpatients['Lymph/uL'].values)
     v[v<0] = 0
-    DataOutpatients.insert(loc=new_idx, column='NeutroBaEu/uL', value=v)
+    DataOutpatients.insert(loc=new_idx, column='Granulo/uL', value=v)
     #
     new_idx = DataControlpatients.columns.get_loc('WBC/uL') + 1
-    v = DataControlpatients['WBC/uL'].values - (DataControlpatients['Mono/uL'].values + DataControlpatients['Linfo/uL'].values)
+    v = DataControlpatients['WBC/uL'].values - (DataControlpatients['Mono/uL'].values + DataControlpatients['Lymph/uL'].values)
     v[v<0] = 0
-    DataControlpatients.insert(loc=new_idx, column='NeutroBaEu/uL', value=v)
+    DataControlpatients.insert(loc=new_idx, column='Granulo/uL', value=v)
 
 
     # Add delta_onset column

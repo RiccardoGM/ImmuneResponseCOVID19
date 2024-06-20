@@ -1,71 +1,57 @@
-## Minimum NPV
-min_NPV_Models = False
+## --- Parameters and methods --- ##
+
+# Minimum NPV
+min_NPV_Models = True # whether to eval. min NPV models
 min_NPV = 0.97
 
-## Correlation threshod
-#corr_th = 0.8
-corr_th_univ = 0.99
-
-## Min % no nans per column
+# Min % no nans per column
 perc_nonans = 10
 perc_nonans_univ = 10
 
-## Nan masking row-wise
+# Nan masking row-wise
 do_nan_masking = True
 do_nan_masking_univ = True
 do_nan_masking_groupwise = True # apply nan-masking group-wise for each row
 nan_masking = 0.5 # max % nans allowed per row or per group
 
-## Reference time
-ref_time = 't0'
-
-## N samples for average
+# N samples for average
 N_av = 100 #100
 
-## Imputation
+# Imputation
 imputation_method = 'knn'
 imputation_method_univ = 'mean'
 
-## Standardization
+# Standardization
 std_method = 'PowerTransformer' # 'PowerTransformer' or 'StandardScaler'
 z_score_th = 3.
 std_cat_variables = True
 
-## PCA 
+# PCA 
 pca_var_threshold = 0.05
 
-## Preprocessing
+# Preprocessing
 do_preprocessing_multiv = True # Always True
 do_preprocessing_univ = True # True or False (False: no standardization)
 
-## Train-test
+# Train-test
 test_size = 0.30
 ignore_sex = False
 
-## Age
+# Age
 age_min = 30 # 30 or 70
 age_max = 100 # 100 or 70
 if age_max<=70:
-    ignore_sex = True # Condition required to split data in this stratum
+    ignore_sex = True # Required to split data in this stratum
 
-## Delta onset
+# Delta onset
 donset_min = 0 # 0 or 11
 donset_max = 30 # 10 or 30
 
-## Target
-train_target = 'IOT+death' # death, merged_death, infectious_complications, IOT+death, IOT+ICU+death, IOT+death+WHOge4
+# Target
+train_target = 'OTI+death'
 test_target = train_target
 
-## Plot
-plot_minNPV_models = False
-
-## Feature selection
-use_manual_selection = True
-
-## Dataset to use
-use_CCIMasked_dataset = True
-
-## Regulariser
+# Regulariser
 find_regulariser_before_average = False
 hyperparameters_grid_LR = {'C': [1e-4, 1e-3, 1e-2, 5*1e-2, 1e-1, 5*1e-1, 1e0, 5*1e0, 1e1], 
                            'class_weight': ['balanced'],
@@ -74,45 +60,52 @@ hyperparameters_grid_LR = {'C': [1e-4, 1e-3, 1e-2, 5*1e-2, 1e-1, 5*1e-1, 1e0, 5*
 score = 'f1'
 n_splits_gridsearch = 3
 
-## Variables of interest
-immunecells_set = ['NK/uL', 'B CD19/uL', 'T CD3/uL', 'T CD4/uL', '% T CD4 HLADR POS', 'T CD8/uL', '% T CD8 HLADR POS', 
-                   'WBC/uL', 'NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'Mono DR %', 'Linfo/uL', 'LRTE/uL', 'LRTE % dei CD4']
+
+
+## --- Main variables --- ##
+
+# Variables of interest
+immunecells_set = ['NK/uL', 'B CD19/uL', 'T CD3/uL', 'T CD4/uL', '% T CD4 HLADR+', 'T CD8/uL', '% T CD8 HLADR+', 
+                   'WBC/uL', 'Granulo/uL', 'Mono/uL', 'Mono DR IF', 'Mono DR %', 'Lymph/uL', 'RTE/uL', 'RTE % CD4']
 cytokines_set = ['IFNGC', 'IL10', 'IL1B', 'IL2R', 'IL6', 'IL8', 'IP10']
 demographics_set = ['age', 'sex', 'delta_onset']
-scores_set = ['CCI (charlson comorbidity index)', 'SOFA', 'NEWS', 'qCSI', '4 C score']
-biomarkers_set = ['PROADM', 'LDH', 'PCR']
-output_set = ['merged_death', 'IOT+death', 'IOT+ICU+death', 'WHO=>3']
+scores_set = ['CCI (charlson comorbidity index)', 'SOFA', 'NEWS', 'qCSI', '4C']
+biomarkers_set = ['proADM', 'LDH', 'CRP']
+output_set = ['death', 'OTI+death', 'OTI+ICU+death', 'WHO=>3']
 allinput_set = demographics_set + immunecells_set + cytokines_set + biomarkers_set + scores_set
 
-## Variables of multivariate models
-FC_set = ['NeutroBaEu/uL', 'Mono/uL', 'MONO DR IFI', 'LRTE % dei CD4', 'T CD3/uL', 'B CD19/uL']
+# Variables of multivariate models
+FC_set = ['Granulo/uL', 'Mono/uL', 'Mono DR IF', 'RTE % CD4', 'T CD3/uL', 'B CD19/uL']
 Dem_set = ['age', 'sex', 'delta_onset']
 CK_set = ['IL2R', 'IL6', 'IL8', 'IL10', 'IP10']
-BM_set = ['PROADM', 'LDH', 'PCR']
+BM_set = ['proADM', 'LDH', 'CRP']
 
-## Other variables
-comorbidities_set = ['obesity', 'dyslipidemia', 'cardiovascular_disease', 'diabetes', 'BPCO', 'IRC', 'hepatopathy',
+# Comorbidity variables
+comorbidities_set = ['obesity', 'dyslipidemia', 'CVDs', 'diabetes', 'COPD', 'CKI', 'hepatopathy',
                      'hypertension', 'tumor', 'oncohematology', 'autoimmunity', 'immunosuppressed']
-TC_set = ['parenchima_width', 'TC1_level']
-therapies_set = ['cortisone']
-hometherapies_set = ['home_therapy#immunosuppressants', 'home_therapy#immunomodulators', 'home_therapy#steroids']
-
-## File names
-file_name_inpatients = 'DataInpatients_CCIMasked.xlsx'
-file_name_outpatients = 'DataOutpatients.xlsx'
 
 
-# ------- #
 
-## Paths
-path_results = '/Users/riccardo/Documents/GitHub/COVID19Classification/Results/'
-path_figures = '/Users/riccardo/Documents/GitHub/COVID19Classification/Figures/'
-path_datasets = '/Users/riccardo/Documents/GitHub/COVID19Classification/Data/'
-path_setsdescription = '/Users/riccardo/Documents/GitHub/COVID19Classification/DatasetsDescription/'
+## --- Input files --- ##
+
+file_name_inpatients = 'DataInpatients_anonymized.xlsx' # Data filtered by CCI
+file_name_outpatients = 'DataOutpatients_anonymized.xlsx'
 
 
-## --- Folder basic stat --- ##
-foldername_basicstatresults = 'BasicStatAnalysis/'
+
+## --- Main directories --- ##
+
+path_results = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Results/'
+path_figures = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Figures/'
+path_datasets = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Data/'
+path_setsdescription = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/DatasetsDescription/'
+
+
+
+## --- Directory stat. analysis --- ##
+
+foldername_statresults = 'DescriptiveStatistics/'
+
 
 
 ## --- Experiment description --- ##
@@ -150,17 +143,10 @@ else:
 # Std method
 exp_description = exp_description + '_Std#%s' % (std_method)
 
-# Dataset
-if use_CCIMasked_dataset:
-    exp_description = exp_description + '_DatasetMaskedByCCI'
-    
-# Regulariser
-if find_regulariser_before_average:
-    exp_description = exp_description + '_RegFixed#True'
-else:
-    exp_description = exp_description + '_RegFixed#False'
 
-## --- Folder multiv. --- ##
+
+## --- Directory multiv. --- ##
+
 exp_multiv_description = ''
 
 # Nan masking
@@ -170,14 +156,14 @@ if do_nan_masking:
     else:
         exp_multiv_description = exp_multiv_description + '_NansRow#%d' % int(100*nan_masking)
     
-    
 # PCA % var. threshold
 exp_multiv_description = exp_multiv_description + '_PCAPercVarTh#%d' % int(pca_var_threshold*100)
-    
+
 foldername_multiv = 'MultivModels' + exp_description + exp_multiv_description + '/'
 
 
-## --- Folder univ. --- ##
+
+## --- Directory univ. --- ##
 
 exp_univ_description = ''
 
@@ -192,3 +178,37 @@ if not do_preprocessing_univ:
     exp_univ_description = exp_univ_description + '_Std#False'
 
 foldername_univ = 'UnivModels' + exp_description + exp_univ_description + '/'
+
+
+
+## --- Colors --- ##
+
+pink = '#E38A8A'
+light_green = '#A3F0A3'
+green = '#7FB285'
+pine_green = '#136F63'
+light_pine_green = '#79DDD0'
+violet = '#A888BF'
+light_red_purp = '#FF616D'
+red_purp = '#F73B5C'
+light_blue = '#3C8DAD'
+queen_blue = '#456990'
+dark_blue = '#125D98'
+orange = '#F5A962'
+yellow = '#FFD966'
+lavander = '#D5C6E0'
+african_violet = '#B084CC'
+dark_liver = '#56494C'
+dark_purple = '#30011E'
+grey_green = '#5B7B7A'
+coral = '#FF8360'
+dark_coral = '#FF6F47'
+rose = '#FF69A5'
+electricblue = '#7DF9FF'
+blue_green = '#77CFBF'
+dark_dark_blue = '#0B385B'
+dark_blue_green = '#40b5a0'
+eton_blue = '#96c8a2'
+light_grey = '#DDDDDD'
+grey_1 = '#AAAAAA'
+grey_2 = '#DDDDDD'

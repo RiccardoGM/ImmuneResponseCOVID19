@@ -23,7 +23,8 @@ from Modules import CustomClasses as cc, Parameters
 # ---- # ---- # ---- # Functions # ---- # ---- # ---- #
 
 def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None, standardization='dafault', 
-                  imputation='knn', std_parameters_dict={}, fix_outliers=False, do_imputation=True, std_cat_variables=False):
+                  imputation='knn', std_parameters_dict={}, fix_outliers=False, do_imputation=True, 
+                  std_cat_variables=False, random_state=None):
     
     '''
        This function pre-processes data for training and testing.
@@ -34,10 +35,9 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
              4) Data_test: pandas DataFrame with all covariates ready for preprocessing.
              5) standardization: string, 'default', 'PowerTransformer'
              6) imputation: string, 'knn' or 'mean'
-             7) nan_masking: False or float indicating the fraction of nans allowed in each row.
-             8) random_state: seed for random state.
-             9) std_parameters: dictionary of std parameters to use for standardization.
-             10) fix_outliers: whether to fix outliers or not in the PowerTransformer.
+             7) random_state: seed for random state.
+             8) std_parameters: dictionary of std parameters to use for standardization.
+             9) fix_outliers: whether to fix outliers or not in the PowerTransformer.
     '''
     
     if target_test==None:
@@ -119,7 +119,6 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
         standardizer = PowerTransformer()
     else:
         raise ValueError('Standardization not understood. Allowed values: \'StandardScaler\', \'PowerTransformer\'.')
-    std_parameters = pd.Series(index=Features_noncat, dtype=float)
     if n_noncat_features>0:
         X = Data_X.loc[:, Features_noncat].values.copy()
         # Standardize
@@ -136,7 +135,7 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
             of_method = 'zscore'
             ql = -3.
             qh = 3.
-            of = cc.OutliersFixer(method=of_method)
+            of = cc.OutliersFixer(method=of_method, seed=random_state)
             X = of.fit_transform(X, ql, qh)
             # re-standardize
             ss = StandardScaler()
@@ -151,7 +150,7 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
             X = standardizer.transform(X)
             # fix outliers
             if fix_outliers:
-                of = cc.OutliersFixer(method=of_method)
+                of = cc.OutliersFixer(method=of_method, seed=random_state)
                 X = of.fit_transform(X, ql, qh) # refit: detect outliers within test set
                 # re-standardize
                 X = ss.transform(X)
@@ -200,7 +199,7 @@ def preprocessing(Data, target_train, Data_test=pd.DataFrame(), target_test=None
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def data_dict(Data, target_train, Data_test=pd.DataFrame(), target_test=None, random_state=None):
+def data_dict(Data, target_train, Data_test=pd.DataFrame(), target_test=None):
     
     ''' This function returns a data dictionary as in preprocessing, without performing the preprocessing.'''
     
@@ -291,7 +290,8 @@ def models_prediction(Data, test_size, models_dict, target_train, target_test=No
                                                 do_nan_masking_univ=do_nan_masking_univ, 
                                                 nan_masking=nan_masking, 
                                                 ignore_sex=ignore_sex, 
-                                                std_cat_variables=std_cat_variables)
+                                                std_cat_variables=std_cat_variables, 
+                                                random_state=random_state)
             
             ## Save results
             Results['LR'][set_name] = Results_LR_model[set_name]
@@ -312,7 +312,7 @@ def best_threshold_class0(y_pred, value_pred, y_target, min_NPV=0.97, fixed_thre
              2) value_pred: 1D np.array (n_samples) with classifier value for each prediction.
              3) y_target: 1D np.array (n_samples) with class targets.
              4) min_NPV: float in (0, 1); minimum required negative predictive value.
-             5) fixed_threshold: boolean; whether to set NPV=min_NPV.
+             5) fixed_threshold: boolean; whether to set NPV=min_NPV rather than NPV>=min_NPV.
     '''
     
     start = max(value_pred)
@@ -364,7 +364,9 @@ def best_threshold_class0_2(y_pred, value_pred, y_target, min_NPV=0.97, fixed_th
              2) value_pred: 1D np.array (n_samples) with classifier value for each prediction.
              3) y_target: 1D np.array (n_samples) with class targets.
              4) min_NPV: float in (0, 1); minimum required negative predictive value.
-             5) fixed_threshold: boolean; whether to set NPV=min_NPV.
+             5) fixed_threshold: boolean; whether to set NPV=min_NPV rather than NPV>=min_NPV.
+
+        Improvement over best_threshold_class0: slides through value_pred rather than grid with resolution delta_th.
     '''
     
     value_pred_sort = np.sort(value_pred)[::-1]
@@ -420,18 +422,13 @@ def isfloat(value):
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
     
-def best_hyppar_gridsearch(X, y, model, grid, score, n_splits, random_state=None):
-    
-    if random_state!=None:
-        shuffle=True
-    else:
-        shuffle=False
+def best_hyppar_gridsearch(X, y, model, grid, score, n_splits):
     
     grid_search = GridSearchCV(estimator=model, 
                                param_grid=grid, 
                                scoring=score,
-                               cv=StratifiedKFold(n_splits=n_splits, random_state=random_state, shuffle=shuffle), 
-                               n_jobs=1) # can set n_jobs=-1 (use all cores) with env: anaconda
+                               cv=StratifiedKFold(n_splits=n_splits, shuffle=False), 
+                               n_jobs=1)
     grid_search.fit(X, y)
     
     return grid_search.best_params_
@@ -474,7 +471,7 @@ def nan_masking_fc(Data, columns, nan_masking=None, do_nan_masking_groupwise=Fal
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=False, max_iter=50):
+def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=False, max_iter=50, random_state=None):
     
     flag = True
     counter = 0
@@ -494,6 +491,7 @@ def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=Fal
                                                             Data[[target_train, target_test]].values, 
                                                             test_size=test_size, 
                                                             stratify=Data[stratification_columns].values, 
+                                                            random_state=random_state,
                                                             shuffle=True)
         y_train, y_test = y_train[:, 0], y_test[:, 1]
         n_nans_col_train = np.sum(np.sum(pd.notnull(X_train), axis=0) == 0)
@@ -514,11 +512,11 @@ def split_fc(Data, columns, target_train, target_test, test_size, ignore_sex=Fal
 
 # ---- # ---- # ---- # ---- # ---- # ---- # ---- # ---- #
 
-def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_train='IOT+death', target_test='IOT+death',  
+def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_train='OTI+death', target_test='OTI+death',  
                      test_size=0.3, hyperp_dict={}, do_preprocessing=True, fix_outliers=False, do_imputation=True, imputation='knn', 
                      pca_var_threshold=0.05, standardization='PowerTransformer', min_NPV_Models=True, min_NPV=0.97, groups=None, 
                      do_nan_masking=False, do_nan_masking_groupwise=False, do_nan_masking_univ=True, nan_masking=None, 
-                     return_model=False, return_data=False, ignore_sex=False, std_cat_variables=False):
+                     return_model=False, return_data=False, ignore_sex=False, std_cat_variables=False, random_state=None):
 
     columns = features
             
@@ -563,7 +561,8 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                                          target_train, 
                                          target_test,
                                          test_size, 
-                                         ignore_sex=ignore_sex)
+                                         ignore_sex=ignore_sex,
+                                         random_state=random_state)
     else:
         Data_train = Data_masked
         Data_test = nan_masking_fc(Data_test, 
@@ -583,11 +582,12 @@ def LR_model_results(Data, features, set_name, Data_test=pd.DataFrame(), target_
                                                target_test=target_test,
                                                Data_test=Data_test,
                                                standardization=standardization, 
-                                               imputation=imputation, # 'default' or 'PowerTransformer'
+                                               imputation=imputation,
                                                std_parameters_dict=std_parameters_dict,
                                                fix_outliers=fix_outliers, 
                                                do_imputation=do_imputation, 
-                                               std_cat_variables=std_cat_variables)
+                                               std_cat_variables=std_cat_variables,
+                                               random_state=random_state)
     else:
         Preprocessed_data_dict = data_dict(Data_train,
                                            target_train,
