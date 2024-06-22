@@ -1,11 +1,3 @@
-## Module description
-
-'''
-    This file contains custom classes.
-'''
-
-## Import statements
-
 import numpy as np
 from sklearn.preprocessing import PowerTransformer
 from matplotlib.ticker import ScalarFormatter

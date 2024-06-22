@@ -1,8 +1,5 @@
-# Import statements
 import pandas as pd
 import numpy as np
-
-# Sklearn
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
@@ -14,7 +11,9 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_sp
 import sys
 import os
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
-sys.path.append('/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/')
+this_path = os.path.abspath('') 
+parent_dir = os.path.dirname(this_path)  
+sys.path.append(parent_dir)
 
 # Import custom modules
 from Modules import CustomClasses as cc, Parameters

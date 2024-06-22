@@ -95,10 +95,13 @@ file_name_outpatients = 'DataOutpatients_anonymized.xlsx'
 
 ## --- Main directories --- ##
 
-path_results = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Results/'
-path_figures = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Figures/'
-path_datasets = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/Data/'
-path_setsdescription = '/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19/DatasetsDescription/'
+import os
+this_path = os.path.abspath('') 
+parent_dir = os.path.dirname(this_path)
+path_results = parent_dir + '/Results/'
+path_figures = parent_dir + '/Figures/'
+path_datasets = parent_dir + '/Data/'
+path_setsdescription = parent_dir + '/DatasetsDescription/'
 
 
 

@@ -1,14 +1,18 @@
-# Import libraries
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, PowerTransformer
 import sys
 import os
 
-# Custom modules
+# Add path to custom modules
+import sys
+import os
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
-sys.path.append('/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19')
-print(sys.version)
+this_path = os.path.abspath('') 
+parent_dir = os.path.dirname(this_path)  
+sys.path.append(parent_dir)
+
+# Import custom modules
 from Modules import Parameters
 
 ## ---------- ##
