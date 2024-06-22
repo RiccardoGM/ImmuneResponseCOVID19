@@ -7,7 +7,7 @@ import os
 
 # Custom modules
 os.environ['PATH'] = os.environ['PATH'] + ':/Library/TeX/texbin'
-sys.path.append('/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19Local/')
+sys.path.append('/Users/riccardo/Documents/GitHub/ImmuneResponseCOVID19')
 print(sys.version)
 from Modules import Parameters
 
