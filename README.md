@@ -21,13 +21,13 @@ Our study used the following parameter setups:
 
 * Default Setup:
   _age_min=30_, _age_max=100_, _donset_min=0_, _donset_max=30_
-* Setup 2:
+* Younger cohort:
   _age_min=30_, _age_max=70_, _donset_min=0_, _donset_max=30_
-* Setup 3:
+* Older cohort:
   _age_min=70_, _age_max=100_, _donset_min=0_, _donset_max=30_
-* Setup 4:
+* Early hospitalization:
   _age_min=30_, _age_max=100_, _donset_min=0_, _donset_max=10_
-* Setup 5:
+* Late hospitalization:
   _age_min=30_, _age_max=100_, _donset_min=11_, _donset_max=30_
 
 ### Datasets
@@ -49,7 +49,7 @@ Multivariate logistic regression analysis:
 Results visualization:
 
 * Notebook: _ResultsVisualization.ipynb_
-* Description: this notebook provides visualizations and interprets the results saved in the _Results_ directory.
+* Description: this notebook provides visualizations for the results saved in the _Results_ directory.
 
 Descriptive statistics analysis:
 
