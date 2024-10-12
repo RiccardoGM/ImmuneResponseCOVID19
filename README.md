@@ -1,5 +1,5 @@
 # Immune response and severity of COVID-19
-This repository provides the datasets and code necessary to replicate the results presented in the paper *"Investigating the relationship between the immune response and the severity of COVID-19: a large-cohort retrospective study"*. Preprint is available on [medRxiv](https://www.medrxiv.org/content/10.1101/2024.06.20.24309246v1).
+This repository provides the datasets and code necessary to replicate the results presented in the paper *"Investigating the relationship between the immune response and the severity of COVID-19: a large-cohort retrospective study"*. The preprint is available on [medRxiv](https://www.medrxiv.org/content/10.1101/2024.06.20.24309246v1).
 
 ### Requirements
 * pandas version: 1.1.5
