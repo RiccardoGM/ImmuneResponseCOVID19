@@ -57,8 +57,8 @@ hyperparameters_grid_LR = {'C': [1e-4, 1e-3, 1e-2, 5*1e-2, 1e-1, 5*1e-1, 1e0, 5*
                            'class_weight': ['balanced'],
                            'penalty': ['l2'],
                            'max_iter': [1000]}
-score = 'f1'
-n_splits_gridsearch = 3
+score = 'roc_auc' #'f1'
+n_splits_gridsearch = 4 #3
 
 
 

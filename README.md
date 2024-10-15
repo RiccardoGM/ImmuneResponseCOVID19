@@ -36,6 +36,8 @@ The anonymized datasets required for the analysis can be found in the _Data_ dir
 ### Running the analysis
 To reproduce and visualize the results, use the Jupyter notebooks located in the _Notebooks_ directory:
 
+First of all, pre-process the datasets with _DataPreprocessing.ipynb_ so that patients are filtered according to the chosen parameters (see above).
+
 Univariate logistic regression analysis:
 
 * Notebook: _UnivariateLogisticRegression.ipynb_
